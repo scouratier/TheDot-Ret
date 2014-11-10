@@ -17,7 +17,7 @@ function arms:OnInitialize()
     spells["Judgment"] =                    {r = 32 , g = 0  , b = 0  }
     spells["Exorcism"] =                    {r = 64 , g = 0  , b = 0  }
     spells["Avenging Wrath"] =              {r = 128, g = 0  , b = 0  }
-    spells["Guardian of Ancient Kings"] =    {r = 0  , g = 1  , b = 0  }
+    spells["Guardian of Ancient Kings"] =   {r = 0  , g = 1  , b = 0  }
     spells["Flash of Light"] =              {r = 0  , g = 2  , b = 0  }    
     spells["Fist of Justice"] =             {r = 0  , g = 4  , b = 0  }
     spells["Eternal Flame"] =               {r = 0  , g = 8  , b = 0  }
@@ -26,32 +26,27 @@ function arms:OnInitialize()
     spells["Hand of Freedom"] =             {r = 0  , g = 64 , b = 0  }
     spells["Rebuke"] =                      {r = 0  , g = 128, b = 0  }
     spells["Lay on Hands"] =                {r = 0  , g = 0  , b = 1  }
-
-    local aSpell = {}
-    aSpell = spells["Judgment"]
-    self:Print( spells["Judgment"].r , spells["Judgment"].g , spells["Judgment"].b)
-    self:Print( aSpell.r , aSpell.g , aSpell.b)
-
 end
 
 function arms:OnEnable()
+    square_size = 15
     local f = CreateFrame( "Frame" , "one" , UIParent )
     f:SetFrameStrata( "HIGH" )
-    f:SetWidth( 30 )
-    f:SetHeight( 15 )
-    f:SetPoint( "TOPLEFT" , 15 , 0 )
+    f:SetWidth( square_size * 2 )
+    f:SetHeight( square_size )
+    f:SetPoint( "TOPLEFT" , square_size * 2 , 0 )
     
     self.two = CreateFrame( "StatusBar" , nil , f )
     self.two:SetPoint( "TOPLEFT" )
-    self.two:SetWidth( 15 )
-    self.two:SetHeight( 15 )
+    self.two:SetWidth( square_size )
+    self.two:SetHeight( square_size )
     self.two:SetStatusBarTexture("Interface\\AddOns\\thedot\\Images\\Gloss")
     self.two:SetStatusBarColor( 0 , 0 , 0 )
     
     self.three = CreateFrame( "StatusBar" , nil , f )
-    self.three:SetPoint( "TOPLEFT" , 15 , 0)
-    self.three:SetWidth( 15 )
-    self.three:SetHeight( 15 )
+    self.three:SetPoint( "TOPLEFT" , square_size , 0)
+    self.three:SetWidth( square_size )
+    self.three:SetHeight( square_size )
     self.three:SetStatusBarTexture("Interface\\AddOns\\thedot\\Images\\Gloss")
     self.three:SetStatusBarColor( 0 , 0 , 0 )
     
@@ -67,7 +62,7 @@ end
 function canCastNow(inSpell)
     local start, duration, enable
     local usable, noRage = IsUsableSpell( inSpell )
-        if usable == 1 then
+        if usable == true then
             start, duration, enable = GetSpellCooldown( inSpell )
             if start == 0 then
                 return true , 0
@@ -102,50 +97,21 @@ function arms:COMBAT_LOG_EVENT_UNFILTERED()
     nextCast = noSpell
     	
     -- are we in combat
-    if InCombatLockdown() == 1 or UnitAffectingCombat("focus") == 1 then
+    if InCombatLockdown() == true or UnitAffectingCombat("focus") == true then
         local mana = UnitPower("player",0)
         local holyPower = UnitPower("player",9)
         local holyPowerMax = UnitPowerMax("player",9)
 
-		local iq, iqrank, iqicon, iqcount, iqdebuffType, iqduration, iqexpirationTime, iqisMine, iqisStealable  = UnitBuff("player","Inquisition");
 
-        if iq ~= nil then
-            if iqexpirationTime then
-                iqexpirein = iqexpirationTime - GetTime();
-            end
-            if iqexpirein > 0 and iqexpirein < 1 then
-                Inquisition, InquisitionCooldown = canCastNow("Inquisition")
-                if Inquisition == true then
-                    nextCast = spells["Inquisition"]
-                end
-            end
-        end
-
-        if iq == nil  then
-            Inquisition, InquisitionCooldown = canCastNow("Inquisition")
-            if Colossus == true then
-                nextCast = spells["Inquisition"]
-            end
-        end
-
-        tv, tvcooldown = canCastNow("Templar's Verdict")
-        if tv == true and holyPower == holyPowerMax then
-            nextCast = spells["Templar's Verdict"]
-        end
         
         aowbuff, aowrank, aowicon, aowcount = UnitBuff( "player" , "Art of War")
         if aowbuff ~= nil then
             nextCast = spells["Exorcism"]
         end
 
-        es, escooldown = canCastNow( "Execution Sentence")
-        if es == true then
-            nextCast = spells["Execution Sentence"]
-        end
-
-        how, howcooldown = canCastNow( "Hammer of Wrath")
-        if how == true then
-            nextCast = spells["Hammer of Wrath"]
+        tv, tvcoodown = canCastNow( "Templar's Verdict" )
+        if tv == true then
+            nextCast = spells["Templar's Verdict"]
         end
           
         cs, cscoodown = canCastNow( "Crusader Strike" )
@@ -163,21 +129,26 @@ function arms:COMBAT_LOG_EVENT_UNFILTERED()
             nextCast = spells["Exorcism"]
         end
 
-        tv, tvcoodown = canCastNow( "Templar's Verdict" )
-        if tv == true then
-            nextCast = spells["Templar's Verdict"]
-        end
-      
         aw, awcooldown = canCastNow("Avenging Wrath")
         if aw == true then
             nextCast = spells["Avenging Wrath"]
         end
-        
-        gak, gakcooldown = canCastNow("Guardian of Ancient Kings")
-        if gak == true then
-            nextCast = spells["Guardian of Ancient Kings"]
+
+        how, howcooldown = canCastNow( "Hammer of Wrath")
+        if how == true then
+            nextCast = spells["Hammer of Wrath"]
         end
 
+        es, escooldown = canCastNow( "Execution Sentence")
+        if es == true then
+            nextCast = spells["Execution Sentence"]
+        end
+
+        tv, tvcooldown = canCastNow("Templar's Verdict")
+        if tv == true and holyPower == holyPowerMax then
+            nextCast = spells["Templar's Verdict"]
+        end
+        
     else
         -- not in combat
         local bless, blessrank, blessicon, blesscount, blessdebuffType, blessduration, blessexpirationTime, blessisMine, blessisStealable  = UnitBuff("player","Blessing of Kings");
@@ -187,8 +158,8 @@ function arms:COMBAT_LOG_EVENT_UNFILTERED()
         end
         
     end
-                        
-    self:Print( nextCast["r"] , nextCast["g"] , nextCast["b"])                      
+    
+
     red = red + nextCast["r"]
     green = green + nextCast["g"]
     blue = blue + nextCast["b"]
